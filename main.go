@@ -132,7 +132,6 @@ func (b Backup) createSnapshot() error {
 		}
 
 		snapshotJSON := bodyJSON["snapshot"].(map[string]interface{})
-		log.Print(snapshotJSON["state"])
 
 		if snapshotJSON["state"] != "SUCCESS" {
 			return errors.New("Snapshot creation not acknowledged")
