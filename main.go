@@ -118,38 +118,30 @@ func (b Backup) createSnapshot() error {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {
-
-		resp, err := http.Get(fmt.Sprintf("%v/_cluster/health", b.url))
+	if resp.StatusCode == http.StatusOK {
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
 
 		if err != nil {
 			return err
 		}
 
-		defer resp.Body.Close()
+		var bodyJSON map[string]interface{}
 
-		if resp.StatusCode == http.StatusOK {
-			bodyBytes, err := ioutil.ReadAll(resp.Body)
-
-			if err != nil {
-				return err
-			}
-
-			var bodyJSON map[string]interface{}
-
-			if err := json.Unmarshal(bodyBytes, &bodyJSON); err != nil {
-				return err
-			}
-
-			if bodyJSON["acknowledged"] != true {
-				return errors.New("K8S | Error: Snapshot creation not acknowledged")
-			}
-
-			return nil
+		if err := json.Unmarshal(bodyBytes, &bodyJSON); err != nil {
+			return err
 		}
+
+		snapshotJSON := bodyJSON["snapshot"].(map[string]interface{})
+		log.Print(snapshotJSON["state"])
+
+		if snapshotJSON["state"] != "SUCCESS" {
+			return errors.New("Snapshot creation not acknowledged")
+		}
+
+		return nil
 	}
 
-	return nil
+	return errors.New("Snapshot endpoint returns status other then OK")
 }
 
 func main() {
