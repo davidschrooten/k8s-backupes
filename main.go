@@ -109,7 +109,6 @@ func (b Backup) createRepo() error {
 func (b Backup) createSnapshot() error {
 	client := &http.Client{}
 	req, err := http.NewRequest("PUT", fmt.Sprintf("%v/_snapshot/%v/%v?wait_for_completion=true", b.url, b.repoName, b.snapshotName), strings.NewReader(""))
-	req.ContentLength = 0
 	resp, err := client.Do(req)
 
 	if err != nil {
